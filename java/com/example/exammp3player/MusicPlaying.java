@@ -5,6 +5,7 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +39,7 @@ public class MusicPlaying extends Fragment {
 
 
     private ArrayList<MusicData> musicList;
-    private SimpleDateFormat timeformat = new SimpleDateFormat("mm:ss");
+    private SimpleDateFormat timeformat = new SimpleDateFormat("m:ss");
     String time;
 
     @Override
@@ -90,8 +91,10 @@ public class MusicPlaying extends Fragment {
             mediaPlayer.pause();
             mainActivity.setPause(true);
             btnPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+
         } else {
             mediaPlayer.start();
+            playMusicThread();
             mainActivity.setPause(false);
             btnPlay.setImageResource(R.drawable.ic_pause_black_24dp);
         }

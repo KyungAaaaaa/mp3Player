@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
                 Bitmap bitmap = null;
                 if (data != null) {
                     BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inSampleSize = 2;
+                    options.inSampleSize = 1;
                     bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, options);
                 }
                 String metaMusicDuration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);

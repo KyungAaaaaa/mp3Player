@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 public class MusicAdapter extends BaseAdapter {
@@ -51,7 +52,11 @@ public class MusicAdapter extends BaseAdapter {
         ImageView imageView = view.findViewById(R.id.imageView);
         TextView listTvTitle = view.findViewById(R.id.listTvTitle);
         TextView listTvSinger = view.findViewById(R.id.listTvSinger);
+        TextView listTvDuration = view.findViewById(R.id.listTvDuration);
         MusicData music=arrayList.get(i);
+
+         SimpleDateFormat timeformat = new SimpleDateFormat("m:ss");
+        listTvDuration.setText(timeformat.format(Integer.parseInt(music.getDuration())));
         listTvTitle.setText(music.getTitle());
         listTvSinger.setText(music.getSinger());
         imageView.setImageBitmap(music.getBitmap());
