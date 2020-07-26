@@ -1,9 +1,9 @@
 package com.example.exammp3player;
 
 import android.content.Context;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,12 +35,12 @@ public class MusicList extends Fragment implements View.OnClickListener {
 
     private ArrayList<MusicData> musicList = new ArrayList<MusicData>();
     private MusicData playMusic;
-    private MediaPlayer mediaPlayer;
-    private Thread thread;
     private MainActivity mainActivity;
     private View rootView;
     private String path;
     private boolean playingState;
+    private int playMode;
+    Toast toast;
 
     @Override
     public void onAttach(Context context) {
@@ -61,11 +62,9 @@ public class MusicList extends Fragment implements View.OnClickListener {
         listView.setOnItemClickListener(
                 (adapterView, view, i, l) -> {
                     playMusic = musicList.get(i);
-
                     firstMusicPlay();
                 });
 
-        // playingMusicHandleFunc();
         return rootView;
 
     }
@@ -74,12 +73,19 @@ public class MusicList extends Fragment implements View.OnClickListener {
         mainActivity.actionBar.setDisplayHomeAsUpEnabled(false);
         mainActivity.actionBar.setTitle("전체 노래 목록");
         path = mainActivity.getPath();
-        mediaPlayer = mainActivity.getMediaPlayer();
         musicList = mainActivity.getMusicList();
         if (mainActivity.isStop()) playLayout.setVisibility(View.GONE);
-        if (mediaPlayer.isPlaying() || mainActivity.isPause()) {
+
+        //재생중인 음악이 있을경우
+        if (mainActivity.getMediaPlayer().isPlaying() || mainActivity.isPause()) {
             playingState = true;
-            playingMusicThread();
+            // 아래 위젯에 정보 띄우기
+            musicSetting();
+            //화면전환시 이전 진행상태를 반대로 받아오기(버튼이벤트형식으로 함수처리했기때문에 넘어오면서 반대값이 필요하다)
+            if (mainActivity.isPause()) mainActivity.setPause(false);
+            else mainActivity.setPause(true);
+
+            playingMusicHandleFunc();
         }
     }
 
@@ -118,6 +124,7 @@ public class MusicList extends Fragment implements View.OnClickListener {
 
     //음악 재생,정지,종료 이벤트
     private void playingMusicHandleFunc() {
+        // playModeSettingFunc();
         if (mainActivity.isPause()) musicPlay();
         else if (!mainActivity.isPause()) musicPause();
         else if (mainActivity.isStop()) musicStop();
@@ -127,8 +134,8 @@ public class MusicList extends Fragment implements View.OnClickListener {
     private void musicStop() {
         mainActivity.setStop(true);
         mainActivity.setPause(false);
-        mediaPlayer.stop();
-        mediaPlayer.reset();
+        mainActivity.getMediaPlayer().stop();
+        mainActivity.getMediaPlayer().reset();
         playLayout.setVisibility(View.GONE);
         playingState = false;
     }
@@ -140,54 +147,60 @@ public class MusicList extends Fragment implements View.OnClickListener {
         }
         mainActivity.setPlayMusic(playMusic);
         mainActivity.setStop(false);
-        mainActivity.setPause(true);
+        mainActivity.setPause(false);
         playLayout.setVisibility(View.VISIBLE);
         try {
-            mediaPlayer.setDataSource(path + playMusic.getFileName());
-            mediaPlayer.prepare();
-
-            playingMusicHandleFunc();
+            mainActivity.getMediaPlayer().setDataSource(path + playMusic.getFileName());
+            mainActivity.getMediaPlayer().prepare();
+            musicPlay();
             playingState = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    //음악을 재생 했을때
+    //음악을 재생중일때
     private void musicPlay() {
-        mediaPlayer.start();
-        progressBar.setMax(mediaPlayer.getDuration());
+        mainActivity.getMediaPlayer().start();
+        mainActivity.setPlayMusic(playMusic);
+        mainActivity.setPause(false);
         ibPlay.setImageResource(R.drawable.ic_pause_black_24dp);
+        musicSetting();
+    }
+
+    //재생중인 음악이 존재할때
+    private void musicSetting() {
+        progressBar.setMax(mainActivity.getMediaPlayer().getDuration());
         tvMusicTitle.setText(playMusic.getTitle());
         tvMusicSinger.setText(playMusic.getSinger());
         ivMusicPlay.setImageBitmap(playMusic.getBitmap());
-        mainActivity.setPause(false);
-        mainActivity.setStop(false);
+        //mainActivity.setPause(false);
+        // mainActivity.setStop(false);
         playingMusicThread();
     }
 
     //음악을 일시정지했을때
     private void musicPause() {
-        mediaPlayer.pause();
+        mainActivity.getMediaPlayer().pause();
         mainActivity.setPause(true);
         ibPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
     }
 
+
     private void playingMusicThread() {
-        thread = new Thread() {
+        Thread thread = new Thread() {
             @Override
             public void run() {
                 super.run();
-                progressBar.setMax(mediaPlayer.getDuration());
-                while (mediaPlayer.isPlaying()) {
-                    progressBar.setProgress(mediaPlayer.getCurrentPosition());
+                progressBar.setMax(mainActivity.getMediaPlayer().getDuration());
+                while (mainActivity.getMediaPlayer().isPlaying()) {
+                    progressBar.setProgress(mainActivity.getMediaPlayer().getCurrentPosition());
                 }
                 SystemClock.sleep(200);
             }
         };
         thread.start();
     }
-
 
 
 }

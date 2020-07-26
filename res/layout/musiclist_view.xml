@@ -52,7 +52,7 @@
                     android:layout_height="wrap_content"
                     android:ellipsize="marquee"
                     android:singleLine="true"
-                    android:text="TextView"
+                    android:text="-"
 
                     android:textColor="#FFFFFF"
                     android:textSize="14sp" />
@@ -61,7 +61,7 @@
                     android:id="@+id/tvMusicSinger"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="TextView"
+                    android:text="-"
                     android:textColor="#A2A2A2"
                     android:textSize="14sp" />
 

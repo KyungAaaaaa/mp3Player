@@ -4,7 +4,7 @@ import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class MusicData implements Parcelable {
+public class MusicData{
     private String fileName;
     private String title;
     private String singer;
@@ -18,26 +18,6 @@ public class MusicData implements Parcelable {
         this.bitmap = bitmap;
         this.duration = duration;
     }
-
-    protected MusicData(Parcel in) {
-        fileName = in.readString();
-        title = in.readString();
-        singer = in.readString();
-        bitmap = in.readParcelable(Bitmap.class.getClassLoader());
-        duration = in.readString();
-    }
-
-    public static final Creator<MusicData> CREATOR = new Creator<MusicData>() {
-        @Override
-        public MusicData createFromParcel(Parcel in) {
-            return new MusicData(in);
-        }
-
-        @Override
-        public MusicData[] newArray(int size) {
-            return new MusicData[size];
-        }
-    };
 
     public String getFileName() {
         return fileName;
@@ -77,19 +57,5 @@ public class MusicData implements Parcelable {
 
     public void setDuration(String duration) {
         this.duration = duration;
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(fileName);
-        parcel.writeString(title);
-        parcel.writeString(singer);
-        parcel.writeParcelable(bitmap, i);
-        parcel.writeString(duration);
     }
 }

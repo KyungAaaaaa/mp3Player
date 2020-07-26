@@ -54,7 +54,7 @@
             android:ellipsize="marquee"
             android:gravity="center"
             android:singleLine="true"
-            android:text="TextView"
+            android:text="-"
             android:textColor="#FFFFFF"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -64,7 +64,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="TextView"
+            android:text="-"
             android:textColor="#CACACA"
             android:textSize="18sp" />
 
@@ -89,7 +89,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
-                android:text="TextView"
+                android:text="0:00"
                 android:textColor="#D8D8D8"
                 android:textSize="12sp" />
 
@@ -98,7 +98,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
-                android:text="TextView"
+                android:text="0:00"
                 android:textColor="#D8D8D8"
                 android:textSize="12sp" />
         </RelativeLayout>
@@ -110,7 +110,16 @@
             android:orientation="horizontal">
 
             <ImageButton
-                android:id="@+id/btnPrevious"
+                android:id="@+id/ibPlayMode"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_weight="1"
+                android:background="#00FFFFFF"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/ic_repeat_one_black_24dp" />
+
+            <ImageButton
+                android:id="@+id/ibPrevious"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
                 android:layout_weight="1"
@@ -119,7 +128,7 @@
                 app:srcCompat="@drawable/ic_skip_previous_black_24dp" />
 
             <ImageButton
-                android:id="@+id/btnPlay"
+                android:id="@+id/ibPlayPause_playing"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_weight="1"
@@ -128,13 +137,22 @@
                 app:srcCompat="@drawable/ic_play_arrow_black_24dp" />
 
             <ImageButton
-                android:id="@+id/btnNext"
+                android:id="@+id/ibNext"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
                 android:layout_weight="1"
                 android:background="#00FFFFFF"
                 android:scaleType="fitCenter"
                 app:srcCompat="@drawable/ic_skip_next_black_24dp" />
+
+            <ImageButton
+                android:id="@+id/ibLike"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_weight="1"
+                android:background="#00FFFFFF"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/ic_favorite_black_24dp" />
         </LinearLayout>
 
     </LinearLayout>

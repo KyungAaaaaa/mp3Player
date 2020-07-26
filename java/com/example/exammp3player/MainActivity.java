@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean pause;
     private boolean stop;
     private ArrayList<MusicData> musicList;
+    private int playMode = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
         pause = false;
         stop = true;
         mediaPlayer = new MediaPlayer();
+        mediaPlayer.setLooping(true);
         musicList = new ArrayList<MusicData>();
         musicPlaying = new MusicPlaying();
         musicListView = new MusicList();
@@ -47,6 +49,22 @@ public class MainActivity extends AppCompatActivity {
         findMp3FileFunc();
         actionBar = getSupportActionBar();
         changeFragmentScreen(2);
+
+    }
+
+    public void playModeSettingFunc(int mode) {
+
+        if (mode == 0) {
+            toast = Toast.makeText(this, "한곡 반복 재생모드", Toast.LENGTH_SHORT);
+            mediaPlayer.setLooping(true);
+        } else if (mode == 1) {
+            toast = Toast.makeText(this, "전체 반복 재생모드", Toast.LENGTH_SHORT);
+            mediaPlayer.setLooping(false);
+        } else if (mode == 2) {
+            toast = Toast.makeText(this, "랜덤 반복 재생모드", Toast.LENGTH_SHORT);
+            mediaPlayer.setLooping(false);
+        }
+        playMode = mode;
     }
 
     //액션바 이벤트 함수
@@ -54,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 changeFragmentScreen(2);
-                Log.d("stop", String.valueOf(stop));
+                Log.d("stop", String.valueOf(pause));
                 break;
             default:
                 break;
@@ -65,9 +83,12 @@ public class MainActivity extends AppCompatActivity {
 
     //화면(Fragment)전환 함수
     public void changeFragmentScreen(int i) {
+
         switch (i) {
             case 1:
-                if (mediaPlayer.isPlaying()) {
+                if (playMusic != null) {
+
+
                     FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
                     fragmentTransaction.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
                     fragmentTransaction.replace(R.id.mainLayout, musicPlaying).commit();
@@ -78,7 +99,9 @@ public class MainActivity extends AppCompatActivity {
                 fragmentTransaction2.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
                 fragmentTransaction2.replace(R.id.mainLayout, musicListView).commit();
                 break;
+
         }
+
     }
 
     //앱 종료시 음악끄기
@@ -164,6 +187,15 @@ public class MainActivity extends AppCompatActivity {
     public void setMusicList(ArrayList<MusicData> musicList) {
         this.musicList = musicList;
     }
+
+    public int getPlayMode() {
+        return playMode;
+    }
+
+    public void setPlayMode(int playMode) {
+        this.playMode = playMode;
+    }
+
     //---------------------------------------------------------------//
 
 
@@ -191,9 +223,7 @@ public class MainActivity extends AppCompatActivity {
         // 마지막으로 뒤로 가기 버튼을 눌렀던 시간이 2.5초가 지나지 않았으면 종료
         if (System.currentTimeMillis() <= backKeyPressedTime + 2500) {
             finish();
-            toast.cancel();
-            toast = Toast.makeText(this, "이용해 주셔서 감사합니다.", Toast.LENGTH_LONG);
-            toast.show();
+
         }
     }
 }
