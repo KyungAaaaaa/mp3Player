@@ -39,7 +39,6 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
     private ArrayList<MusicData> musicList;
     private SimpleDateFormat timeformat = new SimpleDateFormat("m:ss");
     String time;
-    int count;
 
     @Override
     public void onAttach(Context context) {
@@ -56,7 +55,6 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
         playMusic = mainActivity.getPlayMusic();
         musicList = mainActivity.getMusicList();
         findViewByIdFunc(rootView);
-        count = mainActivity.getPlayMode();
         playModeSet(mainActivity.getPlayMode());
         playMusicThread();
         init();
@@ -76,6 +74,9 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
             public void onStopTrackingTouch(SeekBar seekBar) {
 
             }
+        });
+        mainActivity.getMediaPlayer().setOnCompletionListener(mediaPlayer -> {
+            init();
         });
         return rootView;
     }
@@ -132,10 +133,15 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
         tvPlayingTitle.setText(playMusic.getTitle());
         tvCurrent.setText(String.valueOf(timeformat.format(mainActivity.getMediaPlayer().getCurrentPosition())));
 
-        //화면전환시 이전 진행상태를 반대로 받아오기(버튼이벤트형식으로 함수처리했기때문에 넘어오면서 반대값이 필요하다)
+
+        changeScreen();
+        musicPlayPauseStopFunc();
+    }
+
+    //화면전환시 이전 진행상태를 반대로 받아오기(버튼이벤트형식으로 함수처리했기때문에 넘어오면서 반대값이 필요하다)
+    private void changeScreen() {
         if (mainActivity.isPause()) mainActivity.setPause(false);
         else mainActivity.setPause(true);
-        musicPlayPauseStopFunc();
     }
 
     private void playMusicThread() {
@@ -172,7 +178,7 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
 
         switch (view.getId()) {
             case R.id.ibPlayMode:
-                count = mainActivity.getPlayMode();
+                int count = mainActivity.getPlayMode();
                 ++count;
                 count = (count == 3) ? count % 3 : count;
                 playModeSet(count);
@@ -180,6 +186,11 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
                 break;
             case R.id.ibPlayPause_playing:
                 musicPlayPauseStopFunc();
+                break;
+            case R.id.ibPrevious:
+
+                break;
+            default:
                 break;
 
         }
