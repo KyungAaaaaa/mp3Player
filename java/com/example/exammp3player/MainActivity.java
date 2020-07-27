@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private MusicList musicListView;
     private MediaPlayer mediaPlayer;
     private MusicData playMusic;
+    private int playMusicIndex;
     private String path;
     private boolean pause;
     private boolean stop;
@@ -132,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
 
                 MusicData music = new MusicData(musicFileName, metaMusicName, metaName, bitmap, metaMusicDuration);
                 musicList.add(music);
+                //bitmap.recycle();
             }
         }
     }
@@ -139,6 +141,14 @@ public class MainActivity extends AppCompatActivity {
 
     //------------------------getter,setter--------------------------//
 
+
+    public int getPlayMusicIndex() {
+        return playMusicIndex;
+    }
+
+    public void setPlayMusicIndex(int playMusicIndex) {
+        this.playMusicIndex = playMusicIndex;
+    }
 
     public MediaPlayer getMediaPlayer() {
         return mediaPlayer;

@@ -38,6 +38,7 @@ public class MusicList extends Fragment implements View.OnClickListener {
     private View rootView;
     private String path;
     private boolean playingState;
+    private boolean finish;
     private int playMode;
 
     @Override
@@ -61,13 +62,16 @@ public class MusicList extends Fragment implements View.OnClickListener {
         listView.setOnItemClickListener(
                 (adapterView, view, i, l) -> {
                     playMusicIndex = i;
-                    playMusic = musicList.get(i);
+                    mainActivity.setPlayMusicIndex(i);
+                    //playMusic = musicList.get(i);
+                    mainActivity.setPlayMusic(musicList.get(i));
                     firstMusicPlay();
                 });
 
         //노래가 끝나면 다음곡 재생
+
         mainActivity.getMediaPlayer().setOnCompletionListener(mediaPlayer -> {
-            nextMusic();
+            if (finish) nextMusic();
         });
         return rootView;
 
@@ -140,9 +144,10 @@ public class MusicList extends Fragment implements View.OnClickListener {
     //음악을 재생할때
     private void musicPlay() {
         mainActivity.getMediaPlayer().start();
-        mainActivity.setPlayMusic(playMusic);
+        // mainActivity.setPlayMusic(playMusic);
         mainActivity.setPause(false);
         ibPlayPause.setImageResource(R.drawable.ic_pause_black_24dp);
+
         musicSetting();
     }
 
@@ -166,9 +171,12 @@ public class MusicList extends Fragment implements View.OnClickListener {
     //다음곡 재생할때
     private void nextMusic() {
         int musicCount = musicList.size() - 1;
-        if (playMusicIndex >= musicCount) playMusicIndex = (playMusicIndex % musicCount) - 1;
-        playMusic = musicList.get(playMusicIndex + 1);
+        if (playMusicIndex >= musicCount)
+            mainActivity.setPlayMusicIndex((mainActivity.getPlayMusicIndex() % musicCount) - 1);
+        mainActivity.setPlayMusic(musicList.get(mainActivity.getPlayMusicIndex() + 1));
+        mainActivity.setPlayMusicIndex(mainActivity.getPlayMusicIndex() + 1);
         firstMusicPlay();
+        finish = false;
     }
 
     //음악을 새로 재생할때
@@ -176,12 +184,12 @@ public class MusicList extends Fragment implements View.OnClickListener {
         if (playingState) {
             musicStop();
         }
-        mainActivity.setPlayMusic(playMusic);
+        //mainActivity.setPlayMusic(playMusic);
         mainActivity.setStop(false);
         mainActivity.setPause(false);
         playLayout.setVisibility(View.VISIBLE);
         try {
-            mainActivity.getMediaPlayer().setDataSource(path + playMusic.getFileName());
+            mainActivity.getMediaPlayer().setDataSource(path + mainActivity.getPlayMusic().getFileName());
             mainActivity.getMediaPlayer().prepare();
             musicPlay();
             mainActivity.playModeSettingFunc(mainActivity.getPlayMode());
@@ -194,9 +202,9 @@ public class MusicList extends Fragment implements View.OnClickListener {
     //재생중인 음악이 존재할때
     private void musicSetting() {
         progressBar.setMax(mainActivity.getMediaPlayer().getDuration());
-        tvMusicTitle.setText(playMusic.getTitle());
-        tvMusicSinger.setText(playMusic.getSinger());
-        ivMusicPlay.setImageBitmap(playMusic.getBitmap());
+        tvMusicTitle.setText(mainActivity.getPlayMusic().getTitle());
+        tvMusicSinger.setText(mainActivity.getPlayMusic().getSinger());
+        ivMusicPlay.setImageBitmap(mainActivity.getPlayMusic().getBitmap());
         playingMusicThread();
     }
 
@@ -210,6 +218,7 @@ public class MusicList extends Fragment implements View.OnClickListener {
                 while (mainActivity.getMediaPlayer().isPlaying()) {
                     progressBar.setProgress(mainActivity.getMediaPlayer().getCurrentPosition());
                 }
+                finish = true;
                 SystemClock.sleep(200);
             }
         };

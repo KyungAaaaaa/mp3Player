@@ -3,6 +3,7 @@ package com.example.exammp3player;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
@@ -23,6 +25,7 @@ import java.util.ArrayList;
 public class MusicPlaying extends Fragment implements View.OnClickListener {
     private MainActivity mainActivity;
     private MusicData playMusic;
+    private ArrayList<MusicData> musicList;
 
     private ImageView ivPlayingAlbumArt;
     private TextView tvPlayingTitle;
@@ -35,10 +38,11 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
     private ImageButton ibPlayMode;
     private ImageButton ibLike;
     private SeekBar seekBar;
+    private boolean finish;
 
-    private ArrayList<MusicData> musicList;
     private SimpleDateFormat timeformat = new SimpleDateFormat("m:ss");
     String time;
+    int count = 0;
 
     @Override
     public void onAttach(Context context) {
@@ -52,12 +56,11 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
         View rootView = inflater.inflate(R.layout.playing_view, container, false);
         mainActivity.actionBar.setDisplayHomeAsUpEnabled(true);
 
-        playMusic = mainActivity.getPlayMusic();
         musicList = mainActivity.getMusicList();
         findViewByIdFunc(rootView);
+        init();
         playModeSet(mainActivity.getPlayMode());
         playMusicThread();
-        init();
         mainActivity.getMediaPlayer().setOnCompletionListener(mediaPlayer -> tvCurrent.setText(tvMax.getText()));
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -76,9 +79,40 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
             }
         });
         mainActivity.getMediaPlayer().setOnCompletionListener(mediaPlayer -> {
-            init();
+            if (finish) nextMusic();
         });
         return rootView;
+    }
+
+
+    //다음곡 재생할때 (정리필요)
+    private void nextMusic() {
+        int musicCount = musicList.size() - 1;
+        if (mainActivity.getPlayMusicIndex() >= musicCount)
+            mainActivity.setPlayMusicIndex((mainActivity.getPlayMusicIndex() % musicCount) - 1);
+        mainActivity.setPlayMusic(musicList.get(mainActivity.getPlayMusicIndex() + 1));
+        mainActivity.setPlayMusicIndex(mainActivity.getPlayMusicIndex() + 1);
+
+        try {
+            mainActivity.setStop(false);
+            mainActivity.setPause(false);
+
+            mainActivity.getMediaPlayer().reset();
+            mainActivity.getMediaPlayer().setDataSource(mainActivity.getPath() + mainActivity.getPlayMusic().getFileName());
+            mainActivity.getMediaPlayer().prepare();
+
+            tvMax.setText(String.valueOf(timeformat.format(mainActivity.getMediaPlayer().getDuration())));
+            seekBar.setMax(mainActivity.getMediaPlayer().getDuration());
+            ivPlayingAlbumArt.setImageBitmap(mainActivity.getPlayMusic().getBitmap());
+            tvPlayingSinger.setText(mainActivity.getPlayMusic().getSinger());
+            tvPlayingTitle.setText(mainActivity.getPlayMusic().getTitle());
+            tvCurrent.setText(String.valueOf(timeformat.format(mainActivity.getMediaPlayer().getCurrentPosition())));
+            musicPlay();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        finish = false;
     }
 
     private void musicPlayPauseStopFunc() {
@@ -92,9 +126,11 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
     //음악을 재생중일때
     private void musicPlay() {
         mainActivity.getMediaPlayer().start();
+        playModeSet(mainActivity.getPlayMode());
         playMusicThread();
         mainActivity.setPause(false);
         ibPlayPause_playing.setImageResource(R.drawable.ic_pause_black_24dp);
+
 
     }
 
@@ -121,6 +157,8 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
 
         ibPlayPause_playing.setOnClickListener(this);
         ibPlayMode.setOnClickListener(this);
+        ibPrevious.setOnClickListener(this);
+        ibNext.setOnClickListener(this);
 
     }
 
@@ -128,11 +166,10 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
     private void init() {
         tvMax.setText(String.valueOf(timeformat.format(mainActivity.getMediaPlayer().getDuration())));
         seekBar.setMax(mainActivity.getMediaPlayer().getDuration());
-        ivPlayingAlbumArt.setImageBitmap(playMusic.getBitmap());
-        tvPlayingSinger.setText(playMusic.getSinger());
-        tvPlayingTitle.setText(playMusic.getTitle());
+        ivPlayingAlbumArt.setImageBitmap(mainActivity.getPlayMusic().getBitmap());
+        tvPlayingSinger.setText(mainActivity.getPlayMusic().getSinger());
+        tvPlayingTitle.setText(mainActivity.getPlayMusic().getTitle());
         tvCurrent.setText(String.valueOf(timeformat.format(mainActivity.getMediaPlayer().getCurrentPosition())));
-
 
         changeScreen();
         musicPlayPauseStopFunc();
@@ -152,7 +189,7 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
                 while (mainActivity.getMediaPlayer().isPlaying()) {
                     seekBar.setProgress(mainActivity.getMediaPlayer().getCurrentPosition());
                     time = timeformat.format(mainActivity.getMediaPlayer().getCurrentPosition());
-                }
+                }finish=true;
                 SystemClock.sleep(200);
             }
         }.start();
@@ -175,7 +212,6 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-
         switch (view.getId()) {
             case R.id.ibPlayMode:
                 int count = mainActivity.getPlayMode();
@@ -187,12 +223,39 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
             case R.id.ibPlayPause_playing:
                 musicPlayPauseStopFunc();
                 break;
+            case R.id.ibNext:
+                nextMusic();
+                break;
             case R.id.ibPrevious:
+                Log.d("nextMusic1", mainActivity.getPlayMusicIndex() + "");
 
+                if (mainActivity.getPlayMusicIndex() == 0)
+                    mainActivity.setPlayMusicIndex(musicList.size());
+                mainActivity.setPlayMusic(musicList.get(mainActivity.getPlayMusicIndex() - 1));
+                mainActivity.setPlayMusicIndex(mainActivity.getPlayMusicIndex() - 1);
+                Log.d("nextMusic2", mainActivity.getPlayMusicIndex() + "");
+
+                try {
+                    mainActivity.setStop(false);
+                    mainActivity.setPause(false);
+
+                    mainActivity.getMediaPlayer().reset();
+                    mainActivity.getMediaPlayer().setDataSource(mainActivity.getPath() + mainActivity.getPlayMusic().getFileName());
+                    mainActivity.getMediaPlayer().prepare();
+                    playModeSet(mainActivity.getPlayMode());
+                    tvMax.setText(String.valueOf(timeformat.format(mainActivity.getMediaPlayer().getDuration())));
+                    seekBar.setMax(mainActivity.getMediaPlayer().getDuration());
+                    ivPlayingAlbumArt.setImageBitmap(mainActivity.getPlayMusic().getBitmap());
+                    tvPlayingSinger.setText(mainActivity.getPlayMusic().getSinger());
+                    tvPlayingTitle.setText(mainActivity.getPlayMusic().getTitle());
+                    tvCurrent.setText(String.valueOf(timeformat.format(mainActivity.getMediaPlayer().getCurrentPosition())));
+                    musicPlay();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             default:
                 break;
-
         }
     }
 
