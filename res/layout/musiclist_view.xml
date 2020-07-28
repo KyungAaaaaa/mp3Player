@@ -13,7 +13,7 @@
         android:layout_weight="8">
 
         <ListView
-            android:id="@+id/listView"
+            android:id="@+id/musicList"
             style="@style/Widget.AppCompat.ListView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -25,7 +25,7 @@
         </ListView>
 
         <ListView
-            android:id="@+id/listView2"
+            android:id="@+id/playListView"
             style="@style/Widget.AppCompat.ListView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -24,7 +24,6 @@ import java.util.ArrayList;
 
 public class MusicPlaying extends Fragment implements View.OnClickListener {
     private MainActivity mainActivity;
-    private MusicData playMusic;
     private ArrayList<MusicData> musicList;
 
     private ImageView ivPlayingAlbumArt;
@@ -39,7 +38,7 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
     private ImageButton ibLike;
     private SeekBar seekBar;
     private boolean finish;
-
+    boolean like = false;
     private SimpleDateFormat timeformat = new SimpleDateFormat("m:ss");
     String time;
     int count = 0;
@@ -57,7 +56,8 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
         View rootView = inflater.inflate(R.layout.playing_view, container, false);
         mainActivity.actionBar.setDisplayHomeAsUpEnabled(true);
 
-        musicList = mainActivity.getMusicList();
+        //musicList = mainActivity.getMusicList();
+        musicList = mainActivity.getCurrentMusicList();
         findViewByIdFunc(rootView);
         init();
         playModeSet(mainActivity.getPlayMode());
@@ -82,6 +82,7 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
         });
         mainActivity.getMediaPlayer().setOnCompletionListener(mediaPlayer -> {
             if (finish) nextMusic();
+
         });
         return rootView;
     }
@@ -91,30 +92,33 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
     private void nextMusic() {
         int musicCount = musicList.size() - 1;
         if (mainActivity.getPlayMusicIndex() >= musicCount)
-            mainActivity.setPlayMusicIndex((mainActivity.getPlayMusicIndex() % musicCount) - 1);
+            mainActivity.setPlayMusicIndex(-1);
         mainActivity.setPlayMusic(musicList.get(mainActivity.getPlayMusicIndex() + 1));
         mainActivity.setPlayMusicIndex(mainActivity.getPlayMusicIndex() + 1);
 
         try {
-            mainActivity.setStop(false);
-            mainActivity.setPause(false);
-
+            mainActivity.getMediaPlayer().stop();
             mainActivity.getMediaPlayer().reset();
+
             mainActivity.getMediaPlayer().setDataSource(mainActivity.getPath() + mainActivity.getPlayMusic().getFileName());
-            //mainActivity.getMediaPlayer().prepare();
+            mainActivity.getMediaPlayer().prepare();
+
 
             tvMax.setText(String.valueOf(timeformat.format(mainActivity.getMediaPlayer().getDuration())));
+            seekBar.setProgress(0);
             seekBar.setMax(mainActivity.getMediaPlayer().getDuration());
             ivPlayingAlbumArt.setImageBitmap(mainActivity.getPlayMusic().getBitmap());
             tvPlayingSinger.setText(mainActivity.getPlayMusic().getSinger());
             tvPlayingTitle.setText(mainActivity.getPlayMusic().getTitle());
             tvCurrent.setText(String.valueOf(timeformat.format(mainActivity.getMediaPlayer().getCurrentPosition())));
+
             musicPlay();
+            seekBar.setVisibility(View.VISIBLE);
+            finish = false;
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-        finish = false;
     }
 
     private void musicPlayPauseStopFunc() {
@@ -127,11 +131,14 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
 
     //음악을 재생중일때
     private void musicPlay() {
+
         mainActivity.getMediaPlayer().start();
         playModeSet(mainActivity.getPlayMode());
         playMusicThread();
         mainActivity.setPause(false);
+        mainActivity.setStop(false);
         ibPlayPause_playing.setImageResource(R.drawable.ic_pause_black_24dp);
+        seekBar.setProgress(0);
 
 
     }
@@ -141,6 +148,33 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
         mainActivity.getMediaPlayer().pause();
         mainActivity.setPause(true);
         ibPlayPause_playing.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+    }
+
+    private void likeSetting(String titleArtist) {
+
+        ArrayList<MusicData> likeMusicList = mainActivity.getMusicDataDBHelper().likeSelectMethod();
+        ArrayList<MusicData> tempList = new ArrayList<MusicData>();
+        for (MusicData m : mainActivity.getMusicList()) {
+            String musicListSong = m.getTitle() + m.getSinger();
+            for (int i = 0; i < likeMusicList.size(); i++) {
+                if (musicListSong.equals(likeMusicList.get(i).getTitle() + likeMusicList.get(i).getSinger()))
+                    tempList.add(m);
+            }
+        }
+
+        for (MusicData m : tempList) {
+            String mData = m.getTitle() + m.getSinger();
+            if ((mData).equals((titleArtist))) {
+                ibLike.setImageResource(R.drawable.ic_favorite_black_24dp);
+                like = true;
+                break;
+            } else {
+                like = false;
+                ibLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+            }
+        }
+
+
     }
 
     private void findViewByIdFunc(View view) {
@@ -174,7 +208,8 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
         tvPlayingSinger.setText(mainActivity.getPlayMusic().getSinger());
         tvPlayingTitle.setText(mainActivity.getPlayMusic().getTitle());
         tvCurrent.setText(String.valueOf(timeformat.format(mainActivity.getMediaPlayer().getCurrentPosition())));
-
+        String titleArtist = mainActivity.getPlayMusic().getTitle() + mainActivity.getPlayMusic().getSinger();
+        likeSetting(titleArtist);
         changeScreen();
         musicPlayPauseStopFunc();
     }
@@ -230,14 +265,30 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
                 break;
 
             case R.id.ibLike:
-                if(musicDataDBHelper.likeSong(mainActivity.getPlayMusic()))Toast.makeText(mainActivity.getApplicationContext(),"좋아요",Toast.LENGTH_SHORT).show();
+                if (!like) {//좋아요가 안되어있으면
+                    if (musicDataDBHelper.likeSong(mainActivity.getPlayMusic())) {
+                        String titleArtist = mainActivity.getPlayMusic().getTitle() + mainActivity.getPlayMusic().getSinger();
+                        likeSetting(titleArtist);
+                        Toast.makeText(mainActivity.getApplicationContext(), "좋아요", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    if (musicDataDBHelper.unlikeSong(mainActivity.getPlayMusic())) {
+                        String titleArtist = mainActivity.getPlayMusic().getTitle() + mainActivity.getPlayMusic().getSinger();
+                        likeSetting(titleArtist);
+                        Toast.makeText(mainActivity.getApplicationContext(), "좋아요 취소", Toast.LENGTH_SHORT).show();
+                    }
+                }
                 break;
             case R.id.ibNext:
-                nextMusic();
+                seekBar.setVisibility(View.INVISIBLE);
+                mainActivity.getMediaPlayer().seekTo(mainActivity.getMediaPlayer().getDuration() - 10);
+                //finish = true;
+                //if (finish) nextMusic();
                 break;
             case R.id.ibPrevious:
+                finish = false;
                 Log.d("nextMusic1", mainActivity.getPlayMusicIndex() + "");
-
+                //  if (finish) {
                 if (mainActivity.getPlayMusicIndex() == 0)
                     mainActivity.setPlayMusicIndex(musicList.size());
                 mainActivity.setPlayMusic(musicList.get(mainActivity.getPlayMusicIndex() - 1));
@@ -247,7 +298,7 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
                 try {
                     mainActivity.setStop(false);
                     mainActivity.setPause(false);
-
+                    mainActivity.getMediaPlayer().stop();
                     mainActivity.getMediaPlayer().reset();
                     mainActivity.getMediaPlayer().setDataSource(mainActivity.getPath() + mainActivity.getPlayMusic().getFileName());
                     mainActivity.getMediaPlayer().prepare();
@@ -262,6 +313,7 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                //  }
                 break;
             default:
                 break;

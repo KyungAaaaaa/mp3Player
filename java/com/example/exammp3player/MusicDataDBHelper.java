@@ -31,23 +31,42 @@ public class MusicDataDBHelper extends SQLiteOpenHelper {
     }
 
     public boolean likeSong(MusicData musicData) {
-            boolean result = false;
-            try {
-                sqLiteDatabase = this.getWritableDatabase();
-                sqLiteDatabase.execSQL("update likeTBL set likeCount=" + 1 + " where song='" + musicData.getTitle()+musicData.getSinger() + "';");
-                Log.d("update DB", "성공");
-                result = true;
-            } catch (SQLException e) {
-                Log.d("update DB", e.getMessage());
+        boolean result = false;
+        try {
+            sqLiteDatabase = this.getWritableDatabase();
+            sqLiteDatabase.execSQL("update likeTBL set likeCount=" + 1 + " where song='" + musicData.getTitle() + musicData.getSinger() + "';");
+            Log.d("update DB", "성공");
+            result = true;
+        } catch (SQLException e) {
+            Log.d("update DB", e.getMessage());
 
-                result = false;
-            } finally {
-                sqLiteDatabase.close();
-            }
-            return result;
-
+            result = false;
+        } finally {
+            sqLiteDatabase.close();
         }
-    public ArrayList<MusicData> likeselectMethod() {
+        return result;
+
+    }
+
+    public boolean unlikeSong(MusicData musicData) {
+        boolean result = false;
+        try {
+            sqLiteDatabase = this.getWritableDatabase();
+            sqLiteDatabase.execSQL("update likeTBL set likeCount=" + 0 + " where song='" + musicData.getTitle() + musicData.getSinger() + "';");
+            Log.d("unlikeSong", "성공");
+            result = true;
+        } catch (SQLException e) {
+            Log.d("unlikeSong", e.getMessage());
+
+            result = false;
+        } finally {
+            sqLiteDatabase.close();
+        }
+        return result;
+
+    }
+
+    public ArrayList<MusicData> likeSelectMethod() {
         ArrayList<MusicData> arrayList = new ArrayList<MusicData>();
         sqLiteDatabase = this.getReadableDatabase();
         Cursor cursor = sqLiteDatabase.rawQuery("select title,artist from likeTBL where likeCount=1;", null);
@@ -58,11 +77,26 @@ public class MusicDataDBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.close();
         return arrayList;
     }
-    public boolean insertMethod(MusicData musicData) {
+
+    public ArrayList<MusicData> userSelectMethod(String listName) {
+        ArrayList<MusicData> arrayList = new ArrayList<MusicData>();
+        sqLiteDatabase = this.getReadableDatabase();
+        Cursor cursor = sqLiteDatabase.rawQuery("select title,artist from "+listName +"TBL;", null);
+
+        while (cursor.moveToNext()) {
+            arrayList.add(new MusicData(cursor.getString(0), cursor.getString(1)));
+            Log.d("userSelectMethod",cursor.getString(0)+ cursor.getString(1));
+        }
+        cursor.close();
+        sqLiteDatabase.close();
+        return arrayList;
+    }
+
+    public boolean insertMethod(String tblName,MusicData musicData) {
         boolean result = false;
         try {
             sqLiteDatabase = this.getWritableDatabase();
-            sqLiteDatabase.execSQL("insert into likeTBL (title,artist,song) values('" + musicData.getTitle() + "','" + musicData.getSinger()+ "','" + musicData.getTitle()+musicData.getSinger()+"');");
+            sqLiteDatabase.execSQL("insert into "+tblName+"TBL (title,artist,song) values('" + musicData.getTitle() + "','" + musicData.getSinger() + "','" + musicData.getTitle() + musicData.getSinger() + "');");
             Log.d("insert DB", "성공");
             result = true;
         } catch (SQLException e) {
@@ -90,23 +124,32 @@ public class MusicDataDBHelper extends SQLiteOpenHelper {
         }
         return result;
     }
+
     public void createTable(String sqlStatement) {
         sqLiteDatabase = this.getWritableDatabase();
-                this.sqLiteDatabase.execSQL(sqlStatement);
+        this.sqLiteDatabase.execSQL(sqlStatement);
 
     }
 
-    public void dropTable(String sqlStatement) {
+    public void dropTable(String tblName) {
+        try {
+            sqLiteDatabase = this.getWritableDatabase();
+            this.sqLiteDatabase.execSQL("drop table if exists " + tblName + "TBL");
+            Log.d("dropTable", "성공");
+        } catch (SQLException e) {
+            Log.d("dropTable", e.getMessage());
+        }
+
+
+    }
+
+    public ArrayList<String> getTableNames() {
         sqLiteDatabase = this.getWritableDatabase();
-                this.sqLiteDatabase.execSQL(sqlStatement);
-
-    }
-    public ArrayList<String> getTableNames() { sqLiteDatabase = this.getWritableDatabase();
         ArrayList<String> tableNameList = new ArrayList<String>();
         Cursor c = sqLiteDatabase.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
 
         if (c.moveToFirst()) {
-            while ( !c.isAfterLast() ) {
+            while (!c.isAfterLast()) {
                 tableNameList.add(c.getString(0));
                 c.moveToNext();
             }
