@@ -11,6 +11,11 @@ public class MusicData{
     private Bitmap bitmap;
     private String duration;
 
+    public MusicData(String title, String singer) {
+        this.title = title;
+        this.singer = singer;
+    }
+
     public MusicData(String fileName, String title, String singer, Bitmap bitmap, String duration) {
         this.fileName = fileName;
         this.title = title;

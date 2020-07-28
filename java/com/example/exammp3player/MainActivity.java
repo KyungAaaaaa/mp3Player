@@ -14,6 +14,8 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -33,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean stop;
     private ArrayList<MusicData> musicList;
     private int playMode = 0;
+    private MusicDataDBHelper musicDataDBHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         pause = false;
         stop = true;
+        musicDataDBHelper = new MusicDataDBHelper(getApplicationContext(), "musicDB");
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setLooping(true);
         musicList = new ArrayList<MusicData>();
@@ -48,10 +52,15 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MODE_PRIVATE);
         path = Environment.getExternalStorageDirectory().getPath() + "/Music2/";
         findMp3FileFunc();
+        //musicDataDBHelper.initMethod();
+        for (MusicData m : musicList) {
+            musicDataDBHelper.insertMethod(m);
+        }
         actionBar = getSupportActionBar();
         changeFragmentScreen(2);
 
     }
+
 
     public void playModeSettingFunc(int mode) {
 
@@ -68,12 +77,25 @@ public class MainActivity extends AppCompatActivity {
         playMode = mode;
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        new MenuInflater(getApplicationContext()).inflate(R.menu.option_munu, menu);
+        return true;
+    }
+
     //액션바 이벤트 함수
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
                 changeFragmentScreen(2);
-                Log.d("stop", String.valueOf(pause));
+                break;
+            case R.id.repository_menu:
+
+                musicListView.listSet();
+                break;
+            case R.id.allList:
+                musicListView.listAllSet();
                 break;
             default:
                 break;
@@ -101,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
                 fragmentTransaction2.replace(R.id.mainLayout, musicListView).commit();
                 break;
 
+
         }
 
     }
@@ -124,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
                 Bitmap bitmap = null;
                 if (data != null) {
                     BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inSampleSize = 1;
+                    options.inSampleSize = 2;
                     bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, options);
                 }
                 String metaMusicDuration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
@@ -141,6 +164,14 @@ public class MainActivity extends AppCompatActivity {
 
     //------------------------getter,setter--------------------------//
 
+
+    public MusicDataDBHelper getMusicDataDBHelper() {
+        return musicDataDBHelper;
+    }
+
+    public void setMusicDataDBHelper(MusicDataDBHelper musicDataDBHelper) {
+        this.musicDataDBHelper = musicDataDBHelper;
+    }
 
     public int getPlayMusicIndex() {
         return playMusicIndex;

@@ -43,6 +43,7 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
     private SimpleDateFormat timeformat = new SimpleDateFormat("m:ss");
     String time;
     int count = 0;
+    private MusicDataDBHelper musicDataDBHelper;
 
     @Override
     public void onAttach(Context context) {
@@ -61,6 +62,7 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
         init();
         playModeSet(mainActivity.getPlayMode());
         playMusicThread();
+        musicDataDBHelper = mainActivity.getMusicDataDBHelper();
         mainActivity.getMediaPlayer().setOnCompletionListener(mediaPlayer -> tvCurrent.setText(tvMax.getText()));
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -159,11 +161,13 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
         ibPlayMode.setOnClickListener(this);
         ibPrevious.setOnClickListener(this);
         ibNext.setOnClickListener(this);
+        ibLike.setOnClickListener(this);
 
     }
 
     // 화면전환시 초기값 설정
     private void init() {
+        mainActivity.actionBar.setTitle("");
         tvMax.setText(String.valueOf(timeformat.format(mainActivity.getMediaPlayer().getDuration())));
         seekBar.setMax(mainActivity.getMediaPlayer().getDuration());
         ivPlayingAlbumArt.setImageBitmap(mainActivity.getPlayMusic().getBitmap());
@@ -189,7 +193,8 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
                 while (mainActivity.getMediaPlayer().isPlaying()) {
                     seekBar.setProgress(mainActivity.getMediaPlayer().getCurrentPosition());
                     time = timeformat.format(mainActivity.getMediaPlayer().getCurrentPosition());
-                }finish=true;
+                }
+                finish = true;
                 SystemClock.sleep(200);
             }
         }.start();
@@ -222,6 +227,10 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
                 break;
             case R.id.ibPlayPause_playing:
                 musicPlayPauseStopFunc();
+                break;
+
+            case R.id.ibLike:
+                if(musicDataDBHelper.likeSong(mainActivity.getPlayMusic()))Toast.makeText(mainActivity.getApplicationContext(),"좋아요",Toast.LENGTH_SHORT).show();
                 break;
             case R.id.ibNext:
                 nextMusic();

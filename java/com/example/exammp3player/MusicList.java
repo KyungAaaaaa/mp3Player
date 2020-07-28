@@ -3,6 +3,7 @@ package com.example.exammp3player;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,8 @@ public class MusicList extends Fragment implements View.OnClickListener {
     private LinearLayout playLayout;
 
     private ArrayList<MusicData> musicList = new ArrayList<MusicData>();
+    private ArrayList<MusicData> userMusicList = new ArrayList<MusicData>();
+    private ArrayList<MusicData> list ;
     private MusicData playMusic;
     private int playMusicIndex;
     private MainActivity mainActivity;
@@ -40,6 +43,7 @@ public class MusicList extends Fragment implements View.OnClickListener {
     private boolean playingState;
     private boolean finish;
     private int playMode;
+    private MusicAdapter musicAdapter;
 
     @Override
     public void onAttach(Context context) {
@@ -54,17 +58,16 @@ public class MusicList extends Fragment implements View.OnClickListener {
         findViewByIdFunc();
         init();
         playMode = mainActivity.getPlayMode();
-        MusicAdapter musicAdapter = new MusicAdapter(mainActivity.getApplicationContext());
-        musicAdapter.setArrayList(musicList);
-        listView.setAdapter(musicAdapter);
+        musicAdapter = new MusicAdapter(mainActivity.getApplicationContext());
+        listViewSettingFunc(musicList);
 
         // 노래 선택시 선택한노래 재생
         listView.setOnItemClickListener(
                 (adapterView, view, i, l) -> {
                     playMusicIndex = i;
                     mainActivity.setPlayMusicIndex(i);
-                    //playMusic = musicList.get(i);
-                    mainActivity.setPlayMusic(musicList.get(i));
+
+                    mainActivity.setPlayMusic(list.get(i));
                     firstMusicPlay();
                 });
 
@@ -77,10 +80,38 @@ public class MusicList extends Fragment implements View.OnClickListener {
 
     }
 
+    private void listViewSettingFunc(ArrayList<MusicData> musicList) {
+        musicAdapter.setArrayList(musicList);
+        list=musicList;
+        musicAdapter.notifyDataSetChanged();
+        listView.setAdapter(musicAdapter);
+    }
+
+    private ArrayList<MusicData> likeMusicListLoad() {
+        ArrayList<MusicData> likeMusicList = mainActivity.getMusicDataDBHelper().likeselectMethod();
+        ArrayList<MusicData> tempList = new ArrayList<MusicData>();
+        for (MusicData m : musicList) {
+            String musicListSong = m.getTitle() + m.getSinger();
+            for (int i = 0; i < likeMusicList.size(); i++) {
+                if (musicListSong.equals(likeMusicList.get(i).getTitle() + likeMusicList.get(i).getSinger()))
+                    tempList.add(m);
+            }
+        }
+        return tempList;
+    }
+
+    public void listSet() {
+        listViewSettingFunc(likeMusicListLoad());
+    }
+    public void listAllSet() {
+        listViewSettingFunc(musicList);
+    }
+
+
     // 화면 로딩시 초기설정
     private void init() {
         mainActivity.actionBar.setDisplayHomeAsUpEnabled(false);
-        mainActivity.actionBar.setTitle("전체 노래 목록");
+        mainActivity.actionBar.setTitle("MusicPlayer");
         path = mainActivity.getPath();
         musicList = mainActivity.getMusicList();
         if (mainActivity.isStop()) playLayout.setVisibility(View.GONE);
@@ -170,10 +201,10 @@ public class MusicList extends Fragment implements View.OnClickListener {
 
     //다음곡 재생할때
     private void nextMusic() {
-        int musicCount = musicList.size() - 1;
+        int musicCount = list.size() - 1;
         if (playMusicIndex >= musicCount)
             mainActivity.setPlayMusicIndex((mainActivity.getPlayMusicIndex() % musicCount) - 1);
-        mainActivity.setPlayMusic(musicList.get(mainActivity.getPlayMusicIndex() + 1));
+        mainActivity.setPlayMusic(list.get(mainActivity.getPlayMusicIndex() + 1));
         mainActivity.setPlayMusicIndex(mainActivity.getPlayMusicIndex() + 1);
         firstMusicPlay();
         finish = false;
