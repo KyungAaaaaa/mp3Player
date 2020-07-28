@@ -2,6 +2,7 @@ package com.example.exammp3player;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentTransaction;
@@ -17,6 +18,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.File;
@@ -90,12 +93,42 @@ public class MainActivity extends AppCompatActivity {
             case android.R.id.home:
                 changeFragmentScreen(2);
                 break;
-            case R.id.repository_menu:
+            case R.id.likeMusic_menu:
 
                 musicListView.listSet();
                 break;
             case R.id.allList:
                 musicListView.listAllSet();
+                break;
+            case R.id.repository_menu:
+                musicListView.repositoryList();
+
+                break;
+            case R.id.addList_menu:
+                //다이어 로그 화면을 메모리로 올려야된다.
+                View root = View.inflate(getApplicationContext(), R.layout.playlist_add, null);
+                EditText playListName = root.findViewById(R.id.playListName);
+
+                AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+                dialog.setTitle("새 재생목록");
+                dialog.setPositiveButton("OK", (dialogInterface, i) -> {
+                    try {
+                        musicDataDBHelper.createTable(
+                                "create Table " + playListName.getText().toString() + "TBL(" +
+                                        "title char(30) not null ," +
+                                        "artist char(30) not null," +
+                                        "song char(60) not null primary key" +
+                                        ");"
+                        );
+                    } catch (Exception e) {
+                        Toast.makeText(getApplicationContext(), "공백은 입력할수 없습니다", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                });
+
+                dialog.setView(root);
+                dialog.show();
+
                 break;
             default:
                 break;

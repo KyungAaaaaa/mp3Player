@@ -9,9 +9,20 @@
         app:actionViewClass="android.widget.SearchView"
         app:showAsAction="always" />
     <item
-        android:id="@+id/repository_menu"
-        android:title="보관함" />
-    <item
         android:id="@+id/allList"
-        android:title="노래 목록" />
+        android:title="전체 노래 목록"></item>
+    <item android:title="보관함">
+        <menu>
+            <item
+                android:id="@+id/likeMusic_menu"
+                android:title="좋아요 리스트" />
+            <item
+                android:id="@+id/repository_menu"
+                android:title="재생목록" />
+            <item
+                android:id="@+id/addList_menu"
+                android:title="새 재생목록 추가" />
+        </menu>
+    </item>
+
 </menu>

@@ -7,14 +7,33 @@
     android:orientation="vertical">
 
 
-    <ListView
-        android:id="@+id/listView"
-        style="@style/Widget.AppCompat.ListView"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="8"
-        android:background="#00FFFFFF"
-        android:paddingLeft="5dp" />
+        android:layout_weight="8">
+
+        <ListView
+            android:id="@+id/listView"
+            style="@style/Widget.AppCompat.ListView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="8"
+            android:background="#00FFFFFF"
+            android:paddingLeft="5dp">
+
+
+        </ListView>
+
+        <ListView
+            android:id="@+id/listView2"
+            style="@style/Widget.AppCompat.ListView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="8"
+            android:background="#00FFFFFF"
+            android:paddingLeft="5dp"
+            android:visibility="gone"></ListView>
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/playLayout"

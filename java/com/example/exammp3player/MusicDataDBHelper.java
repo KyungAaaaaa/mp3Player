@@ -90,5 +90,30 @@ public class MusicDataDBHelper extends SQLiteOpenHelper {
         }
         return result;
     }
+    public void createTable(String sqlStatement) {
+        sqLiteDatabase = this.getWritableDatabase();
+                this.sqLiteDatabase.execSQL(sqlStatement);
+
+    }
+
+    public void dropTable(String sqlStatement) {
+        sqLiteDatabase = this.getWritableDatabase();
+                this.sqLiteDatabase.execSQL(sqlStatement);
+
+    }
+    public ArrayList<String> getTableNames() { sqLiteDatabase = this.getWritableDatabase();
+        ArrayList<String> tableNameList = new ArrayList<String>();
+        Cursor c = sqLiteDatabase.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
+
+        if (c.moveToFirst()) {
+            while ( !c.isAfterLast() ) {
+                tableNameList.add(c.getString(0));
+                c.moveToNext();
+            }
+        }
+
+        c.close();
+        return tableNameList;
+    }
 
 }

@@ -7,6 +7,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -16,6 +18,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import java.io.IOException;
@@ -28,13 +31,14 @@ public class MusicList extends Fragment implements View.OnClickListener {
     private TextView tvMusicTitle;
     private TextView tvMusicSinger;
     private ListView listView;
+    private ListView listView2;
     private ImageView ivMusicPlay;
     private ProgressBar progressBar;
     private LinearLayout playLayout;
 
     private ArrayList<MusicData> musicList = new ArrayList<MusicData>();
     private ArrayList<MusicData> userMusicList = new ArrayList<MusicData>();
-    private ArrayList<MusicData> list ;
+    private ArrayList<MusicData> list;
     private MusicData playMusic;
     private int playMusicIndex;
     private MainActivity mainActivity;
@@ -82,9 +86,56 @@ public class MusicList extends Fragment implements View.OnClickListener {
 
     private void listViewSettingFunc(ArrayList<MusicData> musicList) {
         musicAdapter.setArrayList(musicList);
-        list=musicList;
+        list = musicList;
         musicAdapter.notifyDataSetChanged();
         listView.setAdapter(musicAdapter);
+        listView.setVisibility(View.VISIBLE);
+        listView2.setVisibility(View.GONE);
+    }
+
+
+    public void repositoryList() {
+        ArrayList<String> data = mainActivity.getMusicDataDBHelper().getTableNames();
+        for (int i = 0; i < data.size(); i++) {
+            if (data.get(i).equals("android_metadata")) {
+                data.remove(i);
+            }
+            if (data.get(i).equals("likeTBL")) {
+                data.remove(i);
+            }
+
+        }
+        //data.remove(0);//메타데이터테이블
+        // data.remove(1);//좋아요테이블
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                mainActivity.getApplicationContext(), android.R.layout.simple_list_item_1, data
+        );
+        listView2.setAdapter(adapter);
+        listView2.setVisibility(View.VISIBLE);
+        listView.setVisibility(View.GONE);
+        listView2.setOnItemClickListener((adapterView, view, i, l) -> {
+            listSet();
+        });
+        listView2.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
+                dialog.setTitle("재생목록 삭제");
+                dialog.setMessage(data.get(i)+" 목록을 삭제 하시겠습니까?");
+                dialog.setPositiveButton("OK", (dialogInterface, i2) -> {
+                    mainActivity.getMusicDataDBHelper().dropTable("drop table if exists " + data.get(i));
+                    data.remove(i);
+                    adapter.notifyDataSetChanged();
+                    listView2.setAdapter(adapter);
+                });
+                dialog.setNegativeButton("Cancel",null);
+
+                dialog.show();
+
+
+                return true;
+            }
+        });
     }
 
     private ArrayList<MusicData> likeMusicListLoad() {
@@ -103,6 +154,7 @@ public class MusicList extends Fragment implements View.OnClickListener {
     public void listSet() {
         listViewSettingFunc(likeMusicListLoad());
     }
+
     public void listAllSet() {
         listViewSettingFunc(musicList);
     }
@@ -140,6 +192,7 @@ public class MusicList extends Fragment implements View.OnClickListener {
         ivMusicPlay = rootView.findViewById(R.id.ivMusicPlay);
         progressBar = rootView.findViewById(R.id.progressBar);
         playLayout = rootView.findViewById(R.id.playLayout);
+        listView2 = rootView.findViewById(R.id.listView2);
         tvMusicTitle.setSelected(true);//제목이 텍스트뷰 크기보다 클경우 옆으로 흐르기
         ibPlayPause.setOnClickListener(this);
         ibStop.setOnClickListener(this);
@@ -202,7 +255,7 @@ public class MusicList extends Fragment implements View.OnClickListener {
     //다음곡 재생할때
     private void nextMusic() {
         int musicCount = list.size() - 1;
-        if (playMusicIndex >= musicCount)
+        if (mainActivity.getPlayMusicIndex() >= musicCount)
             mainActivity.setPlayMusicIndex((mainActivity.getPlayMusicIndex() % musicCount) - 1);
         mainActivity.setPlayMusic(list.get(mainActivity.getPlayMusicIndex() + 1));
         mainActivity.setPlayMusicIndex(mainActivity.getPlayMusicIndex() + 1);
