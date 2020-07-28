@@ -101,7 +101,7 @@ public class MusicPlaying extends Fragment implements View.OnClickListener {
 
             mainActivity.getMediaPlayer().reset();
             mainActivity.getMediaPlayer().setDataSource(mainActivity.getPath() + mainActivity.getPlayMusic().getFileName());
-            mainActivity.getMediaPlayer().prepare();
+            //mainActivity.getMediaPlayer().prepare();
 
             tvMax.setText(String.valueOf(timeformat.format(mainActivity.getMediaPlayer().getDuration())));
             seekBar.setMax(mainActivity.getMediaPlayer().getDuration());

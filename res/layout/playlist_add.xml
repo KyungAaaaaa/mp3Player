@@ -3,14 +3,6 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="새 재생목록"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp" />
-
     <EditText
         android:id="@+id/playListName"
         android:layout_width="match_parent"

@@ -1,6 +1,7 @@
 package com.example.exammp3player;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -15,6 +16,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -75,11 +77,66 @@ public class MusicList extends Fragment implements View.OnClickListener {
                     firstMusicPlay();
                 });
 
-        //노래가 끝나면 다음곡 재생
 
-        mainActivity.getMediaPlayer().setOnCompletionListener(mediaPlayer -> {
-            if (finish) nextMusic();
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long l) {
+                ArrayList<String> data = mainActivity.getMusicDataDBHelper().getTableNames();
+                for (int i = 0; i < data.size(); i++) {
+                    if (data.get(i).equals("android_metadata")) data.remove(i);
+                    if (data.get(i).equals("likeTBL")) data.remove(i);
+                }
+                String[] str = new String[data.size()];
+                boolean[] checkedItems = new boolean[str.length];
+                for (int i = 0; i < data.size(); i++) {
+                    str[i] = data.get(i);
+                    checkedItems[i] = false;
+                }
+
+
+                //ArrayAdapter<String> adapter = new ArrayAdapter<>(mainActivity.getApplicationContext(), android.R.layout.select_dialog_multichoice, data);
+                //adapter.notifyDataSetChanged();
+                AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                alert.setTitle("추가할 재생목록 선택");
+                alert.setMultiChoiceItems(str, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i, boolean b) {
+
+                        checkedItems[i] = b;
+                    }
+                });
+                alert.setPositiveButton("완료", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i1) {
+                        String s = "";
+                        for (int i = 0; i < str.length; i++) {
+                            if (checkedItems[i]) {
+                                s += str[i];
+                            }
+                        }
+                        Toast.makeText(mainActivity.getApplicationContext(), s + "재생목록에 추가 완료", Toast.LENGTH_SHORT).show();
+
+                    }
+                });
+                alert.setNegativeButton("취소", null);
+
+                //alert.setAdapter(adapter, null);
+
+
+                alert.show();
+
+
+                return true;
+            }
         });
+        //노래가 끝나면 다음곡 재생
+        mainActivity.getMediaPlayer().
+
+                setOnCompletionListener(mediaPlayer ->
+
+                {
+                    if (finish) nextMusic();
+                });
         return rootView;
 
     }
@@ -97,16 +154,9 @@ public class MusicList extends Fragment implements View.OnClickListener {
     public void repositoryList() {
         ArrayList<String> data = mainActivity.getMusicDataDBHelper().getTableNames();
         for (int i = 0; i < data.size(); i++) {
-            if (data.get(i).equals("android_metadata")) {
-                data.remove(i);
-            }
-            if (data.get(i).equals("likeTBL")) {
-                data.remove(i);
-            }
-
+            if (data.get(i).equals("android_metadata")) data.remove(i);
+            if (data.get(i).equals("likeTBL")) data.remove(i);
         }
-        //data.remove(0);//메타데이터테이블
-        // data.remove(1);//좋아요테이블
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
                 mainActivity.getApplicationContext(), android.R.layout.simple_list_item_1, data
         );
@@ -121,14 +171,14 @@ public class MusicList extends Fragment implements View.OnClickListener {
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
                 AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
                 dialog.setTitle("재생목록 삭제");
-                dialog.setMessage(data.get(i)+" 목록을 삭제 하시겠습니까?");
+                dialog.setMessage(data.get(i) + " 목록을 삭제 하시겠습니까?");
                 dialog.setPositiveButton("OK", (dialogInterface, i2) -> {
                     mainActivity.getMusicDataDBHelper().dropTable("drop table if exists " + data.get(i));
                     data.remove(i);
                     adapter.notifyDataSetChanged();
                     listView2.setAdapter(adapter);
                 });
-                dialog.setNegativeButton("Cancel",null);
+                dialog.setNegativeButton("Cancel", null);
 
                 dialog.show();
 

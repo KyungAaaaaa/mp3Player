@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    //액션바 이벤트 함수
+    //액션바 옵션 이벤트 함수
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
@@ -105,11 +105,10 @@ public class MainActivity extends AppCompatActivity {
 
                 break;
             case R.id.addList_menu:
-                //다이어 로그 화면을 메모리로 올려야된다.
                 View root = View.inflate(getApplicationContext(), R.layout.playlist_add, null);
                 EditText playListName = root.findViewById(R.id.playListName);
 
-                AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+                AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this,R.style.MyDialogTheme);
                 dialog.setTitle("새 재생목록");
                 dialog.setPositiveButton("OK", (dialogInterface, i) -> {
                     try {
@@ -161,12 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    //앱 종료시 음악끄기
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mediaPlayer.reset();
-    }
+
 
     //sdCard에서 mp3파일 불러오기
     private void findMp3FileFunc() {
@@ -195,8 +189,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //------------------------getter,setter--------------------------//
-
+    //------------------------------------------------------getter,setter------------------------------------------------//
 
     public MusicDataDBHelper getMusicDataDBHelper() {
         return musicDataDBHelper;
@@ -270,10 +263,10 @@ public class MainActivity extends AppCompatActivity {
         this.playMode = playMode;
     }
 
-    //---------------------------------------------------------------//
+    //--------------------------------------------------------------------------------------//
 
 
-    ////////////////////////////////////////////////////////////////////////////////////////////
+
     // 마지막으로 뒤로 가기 버튼을 눌렀던 시간 저장
     private long backKeyPressedTime = 0;
     // 첫 번째 뒤로 가기 버튼을 누를 때 표시
@@ -299,5 +292,13 @@ public class MainActivity extends AppCompatActivity {
             finish();
 
         }
+    }
+
+
+    //앱 종료시 음악끄기
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mediaPlayer.reset();
     }
 }

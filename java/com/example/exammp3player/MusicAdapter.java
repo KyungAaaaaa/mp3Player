@@ -48,7 +48,6 @@ public class MusicAdapter extends BaseAdapter {
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (view == null) view = layoutInflater.inflate(R.layout.list_view, null);
 
-        LinearLayout back=view.findViewById(R.id.back);
         ImageView imageView = view.findViewById(R.id.imageView);
         TextView listTvTitle = view.findViewById(R.id.listTvTitle);
         TextView listTvSinger = view.findViewById(R.id.listTvSinger);
