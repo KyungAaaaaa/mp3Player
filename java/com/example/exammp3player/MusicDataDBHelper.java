@@ -35,11 +35,10 @@ public class MusicDataDBHelper extends SQLiteOpenHelper {
         try {
             sqLiteDatabase = this.getWritableDatabase();
             sqLiteDatabase.execSQL("update likeTBL set likeCount=" + 1 + " where song='" + musicData.getTitle() + musicData.getSinger() + "';");
-            Log.d("update DB", "성공");
+            Log.d("likeSong", "성공");
             result = true;
         } catch (SQLException e) {
-            Log.d("update DB", e.getMessage());
-
+            Log.d("likeSong", e.getMessage());
             result = false;
         } finally {
             sqLiteDatabase.close();
@@ -82,10 +81,8 @@ public class MusicDataDBHelper extends SQLiteOpenHelper {
         ArrayList<MusicData> arrayList = new ArrayList<MusicData>();
         sqLiteDatabase = this.getReadableDatabase();
         Cursor cursor = sqLiteDatabase.rawQuery("select title,artist from "+listName +"TBL;", null);
-
         while (cursor.moveToNext()) {
             arrayList.add(new MusicData(cursor.getString(0), cursor.getString(1)));
-            Log.d("userSelectMethod",cursor.getString(0)+ cursor.getString(1));
         }
         cursor.close();
         sqLiteDatabase.close();
@@ -97,10 +94,10 @@ public class MusicDataDBHelper extends SQLiteOpenHelper {
         try {
             sqLiteDatabase = this.getWritableDatabase();
             sqLiteDatabase.execSQL("insert into "+tblName+"TBL (title,artist,song) values('" + musicData.getTitle() + "','" + musicData.getSinger() + "','" + musicData.getTitle() + musicData.getSinger() + "');");
-            Log.d("insert DB", "성공");
+            Log.d("insert", "성공");
             result = true;
         } catch (SQLException e) {
-            Log.d("insert DB", e.getMessage());
+            Log.d("insert", e.getMessage());
             result = false;
         } finally {
             sqLiteDatabase.close();
@@ -128,7 +125,7 @@ public class MusicDataDBHelper extends SQLiteOpenHelper {
     public void createTable(String sqlStatement) {
         sqLiteDatabase = this.getWritableDatabase();
         this.sqLiteDatabase.execSQL(sqlStatement);
-
+        sqLiteDatabase.close();
     }
 
     public void dropTable(String tblName) {
@@ -139,7 +136,7 @@ public class MusicDataDBHelper extends SQLiteOpenHelper {
         } catch (SQLException e) {
             Log.d("dropTable", e.getMessage());
         }
-
+        sqLiteDatabase.close();
 
     }
 
@@ -156,6 +153,7 @@ public class MusicDataDBHelper extends SQLiteOpenHelper {
         }
 
         c.close();
+        sqLiteDatabase.close();
         return tableNameList;
     }
 

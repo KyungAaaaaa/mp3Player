@@ -1,6 +1,7 @@
 package com.example.exammp3player;
 
 import android.content.Context;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.LayoutInflater;
@@ -38,19 +39,16 @@ public class MusicList extends Fragment implements View.OnClickListener {
     private LinearLayout playLayout;
 
     private ArrayList<MusicData> musicList = new ArrayList<>();
-    private ArrayList<MusicData> userMusicList = new ArrayList<>();
-    private ArrayList<MusicData> list;
-    private MainActivity mainActivity;
+    private MainActivity mainAc;
     private View rootView;
     private String path;
     private boolean playingState;
-    private boolean finish;
     private MusicAdapter musicAdapter;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mainActivity = (MainActivity) getActivity();
+        mainAc = (MainActivity) getActivity();
     }
 
     @Nullable
@@ -60,9 +58,10 @@ public class MusicList extends Fragment implements View.OnClickListener {
         findViewByIdFunc(); // UI 처리 함수
         init();             // 화면 로딩시 초기설정
         listViewSetOnItemClickLitener();    // 리스트(노래,재생목록) 선택 이벤트 함수
+
         //노래가 끝나면 다음곡 재생
-        mainActivity.getMediaPlayer().setOnCompletionListener(mediaPlayer -> {
-            if (finish) nextMusic();
+        mainAc.mediaPlayer.setOnCompletionListener(mediaPlayer -> {
+            if (playingState) nextMusic();
         });
         return rootView;
     }
@@ -86,28 +85,28 @@ public class MusicList extends Fragment implements View.OnClickListener {
 
     // 화면 로딩시 초기설정
     private void init() {
-        mainActivity.actionBar.setDisplayHomeAsUpEnabled(false);    //액션바 뒤로가기버튼 숨김
-        musicAdapter = new MusicAdapter(mainActivity.getApplicationContext());
-        musicList = mainActivity.getMusicList();
-        if (mainActivity.firstOpen.equals("MusicPlayer")) {
-            mainActivity.actionBar.setTitle("MusicPlayer"); //액션바 이름설정
+        mainAc.actionBar.setDisplayHomeAsUpEnabled(false);    //액션바 뒤로가기버튼 숨김
+        path = mainAc.getPath();
+        musicAdapter = new MusicAdapter(mainAc.getApplicationContext());
+        musicList = mainAc.getMusicList();
+        if (mainAc.firstOpen.equals("MusicPlayer")) {
+            mainAc.actionBar.setTitle("MusicPlayer"); //액션바 이름설정
             listAllSet();  //전체 노래목록 리스트 셋팅
         } else {
-            list = mainActivity.getCurrentMusicList();
-            listSet(mainActivity.firstOpen);  //재생중인 노래목록 리스트 셋팅
-            mainActivity.actionBar.setTitle(mainActivity.firstOpen); //액션바 이름설정
+            listSet(mainAc.firstOpen);  //재생중인 노래목록 리스트 셋팅
+            mainAc.actionBar.setTitle(mainAc.firstOpen); //액션바 이름설정
         }
-        path = mainActivity.getPath();
-        if (mainActivity.isStop()) playLayout.setVisibility(View.GONE);
+
+        if (mainAc.isStop()) playLayout.setVisibility(View.GONE);
         //재생중인 음악이 있을경우
-        if (mainActivity.getMediaPlayer().isPlaying() || mainActivity.isPause()) {
+        if (mainAc.mediaPlayer.isPlaying() || mainAc.isPause()) {
             playingState = true;
             musicSetting(); // 아래 위젯에 정보 띄우기
 
             //화면전환시 이전 진행상태를 반대로 받아오기(버튼이벤트형식으로 함수처리했기때문에 넘어오면서 반대값이 필요하다)
-            if (mainActivity.isPause()) mainActivity.setPause(false);
-            else mainActivity.setPause(true);
-            mainActivity.playModeSettingFunc(mainActivity.getPlayMode());
+            if (mainAc.isPause()) mainAc.setPause(false);
+            else mainAc.setPause(true);
+            mainAc.playModeSettingFunc(mainAc.getPlayMode());
             playingMusicHandleFunc();   // 재생상태에따른 상태유지
         }
     }
@@ -117,12 +116,12 @@ public class MusicList extends Fragment implements View.OnClickListener {
     // 리스트뷰 셋팅 함수
     private void listViewSettingFunc(ArrayList<MusicData> musicList) {
         musicAdapter.setArrayList(musicList);
-        mainActivity.setCurrentMusicList(musicList);
+        mainAc.setCurrentMusicList(musicList);
         musicAdapter.notifyDataSetChanged();
         musicListView.setAdapter(musicAdapter);
         musicListView.setVisibility(View.VISIBLE);
         playListView.setVisibility(View.GONE);
-        mainActivity.actionBar.setTitle(mainActivity.firstOpen);
+        mainAc.actionBar.setTitle(mainAc.firstOpen);
     }
 
     // 리스트(노래,재생목록) 선택 이벤트 함수
@@ -130,14 +129,14 @@ public class MusicList extends Fragment implements View.OnClickListener {
         // 노래 선택시 선택한노래 재생
         musicListView.setOnItemClickListener(
                 (adapterView, view, i, l) -> {
-                    mainActivity.setPlayMusicIndex(i);
-                    mainActivity.setPlayMusic(mainActivity.getCurrentMusicList().get(i));
+                    mainAc.setPlayMusicIndex(i);
+                    mainAc.setPlayMusic(mainAc.getCurrentMusicList().get(i));
                     firstMusicPlay();
                 });
 
         // 노래 롱클릭시 재생목록 추가 이벤트
         musicListView.setOnItemLongClickListener((adapterView, view, position, l) -> {
-            ArrayList<String> data = mainActivity.getMusicDataDBHelper().getTableNames();
+            ArrayList<String> data = mainAc.getMusicDataDBHelper().getTableNames();
             for (int i = 0; i < data.size(); i++) {
                 if (data.get(i).equals("android_metadata")) data.remove(i);
                 if (data.get(i).equals("likeTBL")) data.remove(i);
@@ -158,9 +157,9 @@ public class MusicList extends Fragment implements View.OnClickListener {
                     if (checkedItems[i]) set.add(str[i]);
                 }
                 for (String s : set) {
-                    mainActivity.getMusicDataDBHelper().insertMethod(s, mainActivity.getCurrentMusicList().get(position));
+                    mainAc.getMusicDataDBHelper().insertMethod(s, mainAc.getCurrentMusicList().get(position));
                 }
-                Toast.makeText(mainActivity.getApplicationContext(), "재생목록에 추가 완료", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mainAc.getApplicationContext(), "재생목록에 추가 완료", Toast.LENGTH_SHORT).show();
             });
             alert.setNegativeButton("취소", null);
             alert.show();
@@ -171,7 +170,7 @@ public class MusicList extends Fragment implements View.OnClickListener {
 
     //옵션- 보관함- 재생목록 선택시 생성되어잇는 재생목록 리스트 불러와서 셋팅하기
     public void repositoryList() {
-        ArrayList<String> data = mainActivity.getMusicDataDBHelper().getTableNames();
+        ArrayList<String> data = mainAc.getMusicDataDBHelper().getTableNames();
         ArrayList<String> tempList = new ArrayList<>();
         for (int i = 0; i < data.size(); i++) {
             switch (data.get(i)) {
@@ -188,7 +187,7 @@ public class MusicList extends Fragment implements View.OnClickListener {
             }
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(mainActivity.getApplicationContext(), android.R.layout.simple_list_item_1, tempList);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(mainAc.getApplicationContext(), android.R.layout.simple_list_item_1, tempList);
         playListView.setAdapter(adapter);
         playListView.setVisibility(View.VISIBLE);
         musicListView.setVisibility(View.GONE);
@@ -198,7 +197,7 @@ public class MusicList extends Fragment implements View.OnClickListener {
             dialog.setTitle("재생목록 삭제");
             dialog.setMessage(tempList.get(i) + " 목록을 삭제 하시겠습니까?");
             dialog.setPositiveButton("OK", (dialogInterface, i2) -> {
-                mainActivity.getMusicDataDBHelper().dropTable(tempList.get(i));
+                mainAc.getMusicDataDBHelper().dropTable(tempList.get(i));
                 tempList.remove(i);
                 adapter.notifyDataSetChanged();
                 playListView.setAdapter(adapter);
@@ -213,11 +212,11 @@ public class MusicList extends Fragment implements View.OnClickListener {
         ArrayList<MusicData> musicDataArrayList;
         //좋아요 리스트는 별도의 함수로 불러온다
         if (listName.equals("like")) {
-            musicDataArrayList = mainActivity.getMusicDataDBHelper().likeSelectMethod();
-            mainActivity.firstOpen="like";
+            musicDataArrayList = mainAc.getMusicDataDBHelper().likeSelectMethod();
+            mainAc.firstOpen = "like";
         } else {
-            musicDataArrayList = mainActivity.getMusicDataDBHelper().userSelectMethod(listName);
-            mainActivity.firstOpen=listName;
+            musicDataArrayList = mainAc.getMusicDataDBHelper().userSelectMethod(listName);
+            mainAc.firstOpen = listName;
         }
         ArrayList<MusicData> tempList = new ArrayList<>();
 
@@ -247,58 +246,60 @@ public class MusicList extends Fragment implements View.OnClickListener {
 
     //음악 재생,정지,종료 이벤트
     private void playingMusicHandleFunc() {
-        if (mainActivity.isPause()) musicPlay();
-        else if (!mainActivity.isPause()) musicPause();
-        else if (mainActivity.isStop()) musicStop();
+        if (mainAc.isPause()) musicPlay();
+        else if (!mainAc.isPause()) musicPause();
+        else if (mainAc.isStop()) musicStop();
     }
 
     //음악을 재생할때
     private void musicPlay() {
-        mainActivity.getMediaPlayer().start();
-        mainActivity.setPause(false);
+        mainAc.mediaPlayer.start();
+        mainAc.setPause(false);
+        progressBar.setMax(mainAc.mediaPlayer.getDuration());
+        playingMusicThread();
         ibPlayPause.setImageResource(R.drawable.ic_pause_black_24dp);
         musicSetting();
     }
 
     //음악을 일시정지했을때
     private void musicPause() {
-        mainActivity.getMediaPlayer().pause();
-        mainActivity.setPause(true);
+        mainAc.mediaPlayer.pause();
+        mainAc.setPause(true);
         ibPlayPause.setImageResource(R.drawable.ic_play_arrow_black_24dp);
     }
 
     //음악을 종료했을때
     private void musicStop() {
-        mainActivity.setStop(true);
-        mainActivity.setPause(false);
-        mainActivity.getMediaPlayer().stop();
-        mainActivity.getMediaPlayer().reset();
+        mainAc.setStop(true);
+        mainAc.setPause(false);
+        mainAc.mediaPlayer.stop();
+        mainAc.mediaPlayer.reset();
+        mainAc.mediaPlayer = new MediaPlayer();
         playLayout.setVisibility(View.GONE);
         playingState = false;
     }
 
     //다음곡 재생할때
     private void nextMusic() {
-        int musicCount = mainActivity.getCurrentMusicList().size() - 1;
-        if (mainActivity.getPlayMusicIndex() >= musicCount)
-            mainActivity.setPlayMusicIndex(-1);
-        mainActivity.setPlayMusic(mainActivity.getCurrentMusicList().get(mainActivity.getPlayMusicIndex() + 1));
-        mainActivity.setPlayMusicIndex(mainActivity.getPlayMusicIndex() + 1);
+        int musicCount = mainAc.getCurrentMusicList().size() - 1;
+        if (mainAc.getPlayMusicIndex() >= musicCount)
+            mainAc.setPlayMusicIndex(-1);
+        mainAc.setPlayMusic(mainAc.getCurrentMusicList().get(mainAc.getPlayMusicIndex() + 1));
+        mainAc.setPlayMusicIndex(mainAc.getPlayMusicIndex() + 1);
         firstMusicPlay();
-        finish = false;
     }
 
     //음악을 새로 재생할때
     private void firstMusicPlay() {
         if (playingState) musicStop();
-        mainActivity.setStop(false);
-        mainActivity.setPause(false);
+        mainAc.setStop(false);
+        mainAc.setPause(false);
         playLayout.setVisibility(View.VISIBLE);
         try {
-            mainActivity.getMediaPlayer().setDataSource(path + mainActivity.getPlayMusic().getFileName());
-            mainActivity.getMediaPlayer().prepare();
+            mainAc.mediaPlayer.setDataSource(path + mainAc.getPlayMusic().getFileName());
+            mainAc.mediaPlayer.prepare();
             musicPlay();
-            mainActivity.playModeSettingFunc(mainActivity.getPlayMode());
+            mainAc.playModeSettingFunc(mainAc.getPlayMode());
             playingState = true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -307,10 +308,10 @@ public class MusicList extends Fragment implements View.OnClickListener {
 
     //재생중인 음악이 존재할때
     private void musicSetting() {
-        progressBar.setMax(mainActivity.getMediaPlayer().getDuration());
-        tvMusicTitle.setText(mainActivity.getPlayMusic().getTitle());
-        tvMusicSinger.setText(mainActivity.getPlayMusic().getSinger());
-        ivMusicPlay.setImageBitmap(mainActivity.getPlayMusic().getBitmap());
+        progressBar.setMax(mainAc.mediaPlayer.getDuration());
+        tvMusicTitle.setText(mainAc.getPlayMusic().getTitle());
+        tvMusicSinger.setText(mainAc.getPlayMusic().getSinger());
+        ivMusicPlay.setImageBitmap(mainAc.getPlayMusic().getBitmap());
         playingMusicThread();
     }
 
@@ -320,12 +321,10 @@ public class MusicList extends Fragment implements View.OnClickListener {
             @Override
             public void run() {
                 super.run();
-                progressBar.setMax(mainActivity.getMediaPlayer().getDuration());
-                while (mainActivity.getMediaPlayer().isPlaying()) {
-                    progressBar.setProgress(mainActivity.getMediaPlayer().getCurrentPosition());
+                while (mainAc.mediaPlayer.isPlaying()) {
+                    progressBar.setProgress(mainAc.mediaPlayer.getCurrentPosition());
                 }
-                finish = true;
-                SystemClock.sleep(200);
+                SystemClock.sleep(500);
             }
         };
         thread.start();
@@ -342,7 +341,7 @@ public class MusicList extends Fragment implements View.OnClickListener {
                 musicStop();
                 break;
             case R.id.playLayout:
-                mainActivity.changeFragmentScreen(1);
+                mainAc.changeFragmentScreen(1);
                 break;
             default:
                 break;

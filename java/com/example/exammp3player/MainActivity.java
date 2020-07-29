@@ -24,23 +24,25 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 public class MainActivity extends AppCompatActivity {
     public ActionBar actionBar;
-public String firstOpen;
+    public String firstOpen;
     private MusicPlaying musicPlaying;
     private MusicList musicListView;
 
-    private MediaPlayer mediaPlayer;
-    private MusicDataDBHelper musicDataDBHelper;
+    public MediaPlayer mediaPlayer;
     private MusicData playMusic;
+    private MusicDataDBHelper musicDataDBHelper;
     private ArrayList<MusicData> musicList;
     private ArrayList<MusicData> currentMusicList;
 
-    private int playMusicIndex;
     private String path;
+    private int playMusicIndex;
     private boolean pause;
     private boolean stop;
     private int playMode;
@@ -51,42 +53,43 @@ public String firstOpen;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         init();//초기 설정
+
         //외부 접근 권한 설정
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MODE_PRIVATE);
         path = Environment.getExternalStorageDirectory().getPath() + "/Music2/";
-        findMp3FileFunc();
-        firstOpen="MusicPlayer";
-        changeFragmentScreen(2);
+        findMp3FileFunc();                //sd카드의 path로 설정한 경로에서 mp3파일 불러오는 함수
+        firstOpen = "MusicPlayer";        //첫화면(전체 노래목록) 구분 문자열값
+        changeFragmentScreen(2);        //프레그먼트 화면셋팅
 
     }
 
     private void init() {
         musicDataDBHelper = new MusicDataDBHelper(getApplicationContext(), "musicDB");
-        actionBar = getSupportActionBar();
+        actionBar = getSupportActionBar();  //액션바 가져오기
         mediaPlayer = new MediaPlayer();
-        mediaPlayer.setLooping(true);
-        musicList = new ArrayList<>();
-        musicPlaying = new MusicPlaying();
-        musicListView = new MusicList();
+        mediaPlayer.setLooping(true);       //한곡 반복모드 설정
+        musicList = new ArrayList<>();      //노래 담을 변수
+        musicPlaying = new MusicPlaying();  //플레이화면 프레그먼트
+        musicListView = new MusicList();    //리스트화면 프레그먼트
         pause = false;
         stop = true;
     }
 
 
     public void playModeSettingFunc(int mode) {
-        Toast toast = null;
-        if (mode == 0) {
-            toast = Toast.makeText(this, "한곡 반복 재생모드", Toast.LENGTH_SHORT);
+        if (mode == 0) {                    //한곡 반복모드
             mediaPlayer.setLooping(true);
-        } else if (mode == 1) {
-            toast = Toast.makeText(this, "전체 반복 재생모드", Toast.LENGTH_SHORT);
+        } else if (mode == 1) {             //순차재생모드
             mediaPlayer.setLooping(false);
-        } else if (mode == 2) {
-            toast = Toast.makeText(this, "랜덤 반복 재생모드", Toast.LENGTH_SHORT);
+        } else if (mode == 2) {             //셔플재생모드
             mediaPlayer.setLooping(false);
+            Set<MusicData> list = new HashSet<>();
+            for (MusicData m : currentMusicList) {
+                list.add(m);
+            }
+            currentMusicList = new ArrayList<>(list);
         }
-        playMode = mode;
-        toast.show();
+        playMode = mode;                    //플레이화면에서 모드변경시 변경된 모드매개변수 저장시켜주기
     }
 
     //옵션메뉴 생성
@@ -100,23 +103,25 @@ public String firstOpen;
     //액션바 옵션 이벤트 함수
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case android.R.id.home:
+            case android.R.id.home:             //플레이화면의 액션바 뒤로가기 버튼
                 changeFragmentScreen(2);
                 break;
-            case R.id.likeMusic_menu:
+            case R.id.likeMusic_menu:           // 좋아요 리스트
                 changeFragmentScreen(2);
                 musicListView.listSet("like");
                 break;
-            case R.id.allList:
-                actionBar.setTitle("MusicPlayer");
-                changeFragmentScreen(2);
+            case R.id.allList:                  //전체 노래 리스트
+                firstOpen = "MusicPlayer";
+                actionBar.setTitle("MusicPlayer"); //액션바 이름설정
                 musicListView.listAllSet();
+                changeFragmentScreen(2);
                 break;
-            case R.id.repository_menu:
+            case R.id.repository_menu:          //재생목록
+                actionBar.setTitle("MusicPlayer");
                 changeFragmentScreen(2);
                 musicListView.repositoryList();
                 break;
-            case R.id.addList_menu:
+            case R.id.addList_menu:             //새 재생목록 추가
                 playListAdd();
                 break;
             default:
@@ -125,6 +130,7 @@ public String firstOpen;
         return super.onOptionsItemSelected(item);
     }
 
+    //플레이 리스트를 추가하는 함수
     private void playListAdd() {
         View root = View.inflate(getApplicationContext(), R.layout.playlist_add, null);
         EditText playListName = root.findViewById(R.id.playListName);
@@ -139,11 +145,13 @@ public String firstOpen;
                                 "song char(60) not null primary key" +
                                 ");"
                 );
+                Toast.makeText(getApplicationContext(), "재생목록 생성 완료", Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
                 Toast.makeText(getApplicationContext(), "공백은 입력할수 없습니다", Toast.LENGTH_SHORT).show();
                 return;
             }
         });
+        dialog.setNegativeButton("Cancel", null);
         dialog.setView(root);
         dialog.show();
     }
@@ -151,24 +159,17 @@ public String firstOpen;
 
     //화면(Fragment)전환 함수
     public void changeFragmentScreen(int i) {
-
         switch (i) {
             case 1:
                 if (playMusic != null) {
-
-
                     FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-                    fragmentTransaction.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
                     fragmentTransaction.replace(R.id.mainLayout, musicPlaying).commit();
                 }
                 break;
             case 2:
                 FragmentTransaction fragmentTransaction2 = getSupportFragmentManager().beginTransaction();
-                fragmentTransaction2.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
                 fragmentTransaction2.replace(R.id.mainLayout, musicListView).commit();
                 break;
-
-
         }
 
     }
@@ -186,7 +187,7 @@ public String firstOpen;
                 Bitmap bitmap = null;
                 if (data != null) {
                     BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inSampleSize = 4;
+                    options.inSampleSize = 2;
                     bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, options);
                 }
                 String metaMusicDuration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
@@ -197,7 +198,7 @@ public String firstOpen;
                 musicList.add(music);
 //                bitmap=null;
 //                bitmap.recycle();
-                musicDataDBHelper.insertMethod("like",music);
+                musicDataDBHelper.insertMethod("like", music);
             }
         }
     }
@@ -229,13 +230,13 @@ public String firstOpen;
         this.playMusicIndex = playMusicIndex;
     }
 
-    public MediaPlayer getMediaPlayer() {
-        return mediaPlayer;
-    }
-
-    public void setMediaPlayer(MediaPlayer mediaPlayer) {
-        this.mediaPlayer = mediaPlayer;
-    }
+//    public MediaPlayer getMediaPlayer() {
+//        return mediaPlayer;
+//    }
+//
+//    public void setMediaPlayer(MediaPlayer mediaPlayer) {
+//        this.mediaPlayer = mediaPlayer;
+//    }
 
     public MusicData getPlayMusic() {
         return playMusic;
