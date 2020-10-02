@@ -1,5 +1,4 @@
 # MP3 Player
-
 안드로이드 MP3 Player 앱 구현 프로젝트
 
 ## 개요
@@ -10,7 +9,7 @@
 
 ### 개발환경
 - 운영체제 : Windows 10 64bit
-- 언어 : Java - jdk1.8.0_251, JavaFx
+- 언어 : Java - jdk1.8.0_251
 - 개발툴 : Andorid Studio 3.5.1
 - DB : SQLite3
 - 테스트환경 : SANSUNG 갤럭시A5 (SM-A500L API 23)
