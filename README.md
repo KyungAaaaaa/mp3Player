@@ -1,6 +1,7 @@
-# MP3 Player
+# 🎵MP3 Player
 안드로이드 MP3 Player 앱 구현 프로젝트
 
+youtube : https://youtu.be/wdziM9NX7wI
 ## 개요
 - 심플한 테마와 음악플레이어의 핵심기능을 구현한 안드로이드 음악플레이어
 
