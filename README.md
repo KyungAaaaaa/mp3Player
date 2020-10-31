@@ -1,4 +1,4 @@
-# 🎵MP3 Player
+# 🎧MP3 Player
 안드로이드 MP3 Player 앱 구현 프로젝트
 
 youtube : https://youtu.be/wdziM9NX7wI
